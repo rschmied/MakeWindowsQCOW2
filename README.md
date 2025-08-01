@@ -1,5 +1,8 @@
 # README
 
+![Video thumbnail](assets/win-on-cml.png)
+Video: <https://youtu.be/LtEGmzRKAfY>
+
 This is just a simple script which creates a Windows 11 VM, provided that
 all the pre-requisites are in place (e.g. in the local directory):
 
@@ -30,6 +33,8 @@ are already in place. These include
    scp -P1122 *.iso win11.sh sysadmin@192.168.123.123:
    ```
 
+   Replace the IP so that it matches your CML controller IP.
+
 1. Login to the CML host from you local machine using an SSH client and ensure
    that you port forward 5901 to localhost 5901:
 
@@ -40,10 +45,11 @@ are already in place. These include
    Replace the IP so that it matches your CML controller IP.
 
 1. Ensure that the referenced ISOs from the `win11.sh` do exist in the current
-   directory.
-1. Then run the
-   script using `bash ./win11.sh`, provide the user's password when prompted (this
-   is needed to access /dev/kvm and to create the network device).
+   directory. Also ensure that the memory and CPU settings are OK for your
+   CML installation. At a minimum, use 4 GB and 2 CPUs.
+1. Then run the script using `bash ./win11.sh`, provide the user's password when
+   prompted (this is needed to access `/dev/kvm` and to create the network
+   device).
 1. After the VM is running, open the VNC client on your local machine and
    connect it to `localhost:5901`. You should get the boot screen of the Windows
    VM running on the CML controller. You likely need to restart the VM by sending
@@ -59,7 +65,7 @@ Refer to the video for detailed installation instructions!
   - <https://www.microsoft.com/en-us/software-download/windows11>
 
 - Virtio driver ISO from Redhat
-  <https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/archive-virtio/virtio-win-0.1.271-1/>
+  - <https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/archive-virtio/virtio-win-0.1.271-1/>
 
 - Windows 11 node definition YAML from the DevNet CML repo
-  <https://github.com/CiscoDevNet/cml-community/tree/master/node-definitions/microsoft/Windows11>
+  - <https://github.com/CiscoDevNet/cml-community/tree/master/node-definitions/microsoft/Windows11>

@@ -4,6 +4,8 @@ set -e
 # === Configurable variables ===
 ISO="Win11_24H2_English_x64.iso"
 VIRTIO_ISO="virtio-win-0.1.271.iso"
+MEMORY="8G"
+CPUS=4
 
 # === no change needed ===
 DISK="win11.qcow2"
@@ -48,8 +50,8 @@ sudo /usr/bin/qemu-system-x86_64 \
     -name windows11 \
     -machine type=q35,accel=kvm \
     -cpu $CPU_FLAGS \
-    -smp 4 \
-    -m 8G \
+    -smp $CPUS \
+    -m $MEMORY \
     -drive if=pflash,format=raw,readonly=on,file="$OVMF_CODE" \
     -drive if=pflash,format=raw,file="$OVMF_VARS" \
     -drive file="$DISK",format=qcow2,if=none,id=disk0 \
