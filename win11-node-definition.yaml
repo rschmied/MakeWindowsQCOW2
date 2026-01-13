@@ -1,0 +1,71 @@
+id: win11
+boot:
+  timeout: 300
+  completed:
+    - READY
+  uses_regex: false
+sim:
+  linux_native:
+    libvirt_domain_driver: kvm
+    driver: server
+    disk_driver: virtio
+    efi_boot: true
+    machine_type: q35
+    ram: 6144
+    cpus: 2
+    cpu_limit: 100
+    cpu_model: Westmere,-waitpkg,-hle,-rtm,-mpx
+    nic_driver: virtio
+    video:
+      memory: 16
+      model: qxl
+    enable_rng: true
+    enable_tpm: true
+general:
+  nature: server
+  description: Windows 11
+  read_only: false
+configuration:
+  generator:
+    driver: server
+device:
+  interfaces:
+    serial_ports: 1
+    physical:
+      - eth0
+      - eth1
+      - eth2
+      - eth3
+      - eth4
+      - eth5
+      - eth6
+      - eth7
+    has_loopback_zero: false
+    default_count: 1
+ui:
+  label_prefix: win11-
+  icon: host
+  label: Windows 11
+  visible: true
+  description: |-
+    2 vCPUs 6 GB RAM
+
+    Username/Password:
+    whatever is set on installation
+
+    ##### Note
+    **EXPERIMENTAL**
+inherited:
+  image:
+    ram: true
+    cpus: true
+    data_volume: true
+    boot_disk_size: true
+    cpu_limit: true
+  node:
+    ram: true
+    cpus: true
+    data_volume: true
+    boot_disk_size: true
+    cpu_limit: true
+schema_version: 0.0.1
