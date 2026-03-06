@@ -56,11 +56,13 @@ are already in place. These include
    ISO paths can be either relative to the working directory or absolute paths.
    `~/...` is supported (expanded to your home directory).
 
-   **Note:** Consider moving the working directory (ISOs/disks) to a location like `/var/windows`.
+   > [!NOTE]
+   > Consider moving the working directory (ISOs/disks) to a location like `/var/windows`.
 
-   **TPM note:** the default TPM socket/state directory is `/tmp/tpm-dir` (chosen to
-   avoid AppArmor denials). Override via `TPM_DIR=...` or `--tpm-dir ...` only if
-   needed.
+   > [!NOTE]
+   > The default TPM socket/state directory is `/tmp/tpm-dir` (chosen to
+   > avoid AppArmor denials). Override via `TPM_DIR=...` or `--tpm-dir ...` only if
+   > needed.
 
 1. To install Windows, run the script in install mode using `./win11.sh --install`,
    provide the user's password when
@@ -81,16 +83,40 @@ Refer to the video for detailed installation instructions!
 
 **In particular:**
 
+> [!IMPORTANT]
+> Some devices used for the VM are different from what is shown in the video.
+> In particular, video and disk storage drivers must be adapted -- see below
+> for the name
+
 - install disk driver early on to see the disk
+  - By default use `viostor` for PCI (works with CML)
+  - When using SCSI then use `vioscsi` (does **not** work with CML)
 - use Shift-F10 to get a terminal and disable BitLocker
   `reg add HKLM\SYSTEM\CurrentControlSet\Control\BitLocker /v PreventDeviceEncryption /t REG_DWORD /d 1 /f`
-- install the Ethernet and Graphics driver
+- install the Ethernet and video driver
+  (use `NetKVM` for Ethernet and `viogpudo` for video)
 - disable updates for App store and Windows Update (via GPO)
 - create READY task in Taskmanager
 - disable power management (screen/system sleep: never)
 - disable hibernation `powercfg /HIBERNATE off` (in admin shell)
 - run Edge once to go through all the "first time run steps"
 - shut down the system
+
+## Optional compressio
+
+After the VM was shutdown you can save some additional disk space by compressing
+the resulting disk image file. Do this by running:
+
+```plain
+qemu-img convert -pc -O qcow2 win11.qcow2 win11-compressed.qcow2
+```
+
+Check results via `ls -lh`, if satisfied then replace the original file with
+the new one:
+
+```plain
+rm win11.qcow2 && mv win11-compressed.qcow2 win11.qcow2
+```
 
 ## Cleanup
 
