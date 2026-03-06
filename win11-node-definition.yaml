@@ -18,7 +18,7 @@ sim:
     nic_driver: virtio
     video:
       memory: 16
-      model: qxl
+      model: virtio
     enable_rng: true
     enable_tpm: true
 general:

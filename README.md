@@ -56,13 +56,13 @@ are already in place. These include
    ISO paths can be either relative to the working directory or absolute paths.
    `~/...` is supported (expanded to your home directory).
 
-   > [!NOTE]
+   > **NOTE**
    > Consider moving the working directory (ISOs/disks) to a location like `/var/windows`.
 
-   > [!NOTE]
+   > **NOTE**
    > The default TPM socket/state directory is `/tmp/tpm-dir` (chosen to
-   > avoid AppArmor denials). Override via `TPM_DIR=...` or `--tpm-dir ...` only if
-   > needed.
+   > avoid AppArmor denials). Override via `TPM_DIR=...` or `--tpm-dir ...`
+   > only if needed.
 
 1. To install Windows, run the script in install mode using `./win11.sh --install`,
    provide the user's password when
@@ -88,21 +88,24 @@ Refer to the video for detailed installation instructions!
 > In particular, video and disk storage drivers must be adapted -- see below
 > for the name
 
-- install disk driver early on to see the disk
-  - By default use `viostor` for PCI (works with CML)
-  - When using SCSI then use `vioscsi` (does **not** work with CML)
-- use Shift-F10 to get a terminal and disable BitLocker
+- install disk driver early on to see the disk drive
+  - By default use the disk driver in `\amd64\w11` for PCI (works with CML)
+  - When using SCSI then use `\vioscsi\w11\amd64` (does **not** work with CML)
+- after copying the base system and after the first reboot, use Shift-F10 to
+  get a terminal and disable BitLocker  
   `reg add HKLM\SYSTEM\CurrentControlSet\Control\BitLocker /v PreventDeviceEncryption /t REG_DWORD /d 1 /f`
-- install the Ethernet and video driver
-  (use `NetKVM` for Ethernet and `viogpudo` for video)
+  This should be done as soon as possible after the first reboot. Some VNC
+  clients allow copy/paste (send as keystrokes)
+- install the Ethernet and video driver after creating the user
+  (use `\NetKVM\w11\amd64` for Ethernet and `\viogpudo\w11\amd64` for video)
 - disable updates for App store and Windows Update (via GPO)
 - create READY task in Taskmanager
-- disable power management (screen/system sleep: never)
+- disable power management in settings app (screen/system sleep: never)
 - disable hibernation `powercfg /HIBERNATE off` (in admin shell)
 - run Edge once to go through all the "first time run steps"
 - shut down the system
 
-## Optional compressio
+## Optional disk compression
 
 After the VM was shutdown you can save some additional disk space by compressing
 the resulting disk image file. Do this by running:
@@ -116,14 +119,6 @@ the new one:
 
 ```plain
 rm win11.qcow2 && mv win11-compressed.qcow2 win11.qcow2
-```
-
-## Cleanup
-
-To remove generated artifacts:
-
-```bash
-./win11.sh --clean
 ```
 
 ## Start From Existing Disk
@@ -142,7 +137,7 @@ unless it already exists.
 # enable networking (creates TAP and attaches to bridge)
 ./win11.sh --net
 
-# install mode with networking
+# install mode with networking (not recommended, install offline)
 ./win11.sh --install --net
 ```
 
@@ -156,6 +151,14 @@ TAP interface (default: `tap0`) and attaches it to the bridge (default: `virbr0`
 
 # customize interface names
 ./win11.sh --install --net --tap-ifname tap0 --bridge virbr0
+```
+
+## Cleanup
+
+To remove generated artifacts in case they are not needed anymore (careful):
+
+```bash
+./win11.sh --clean
 ```
 
 ## Links
