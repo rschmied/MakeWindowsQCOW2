@@ -44,19 +44,93 @@ are already in place. These include
 
    Replace the IP so that it matches your CML controller IP.
 
-1. Ensure that the referenced ISOs from the `win11.sh` do exist in the current
-   directory. Also ensure that the memory and CPU settings are OK for your
-   CML installation. At a minimum, use 4 GB and 2 CPUs.
-1. Then run the script using `bash ./win11.sh`, provide the user's password when
-   prompted (this is needed to access `/dev/kvm` and to create the network
-   device).
+1. Ensure that the referenced ISOs from the `win11.sh` do exist at the
+   specified locations in the `config.env` file. Also ensure that the memory
+   and CPU settings are OK for your CML installation. At a minimum, use 4 GB
+   and 2 CPUs.
+
+   Configuration can be provided via `config.env` (next to `win11.sh`) and/or
+   via environment variables / command-line flags. Environment variables and
+   flags override `config.env`.
+
+   ISO paths can be either relative to the working directory or absolute paths.
+   `~/...` is supported (expanded to your home directory).
+
+   **Note:** Consider moving the working directory (ISOs/disks) to a location like `/var/windows`.
+
+   **TPM note:** the default TPM socket/state directory is `/tmp/tpm-dir` (chosen to
+   avoid AppArmor denials). Override via `TPM_DIR=...` or `--tpm-dir ...` only if
+   needed.
+
+1. To install Windows, run the script in install mode using `./win11.sh --install`,
+   provide the user's password when
+    prompted (this is needed to access `/dev/kvm`, to run QEMU, and (optionally)
+    to configure the TAP interface when `--net` is used).
 1. After the VM is running, open the VNC client on your local machine and
    connect it to `localhost:5901`. You should get the boot screen of the Windows
    VM running on the CML controller. You likely need to restart the VM by sending
    a Ctrl-Alt-Del to it (depends on your VNC client how to do hat) and then press
    any key when instructed on screen to start the installation process.
 
+Run modes:
+
+- Default: starts from an existing base disk via an overlay clone (no ISOs)
+- Install: `./win11.sh --install` (attaches Windows + Virtio ISOs)
+
 Refer to the video for detailed installation instructions!
+
+**In particular:**
+
+- install disk driver early on to see the disk
+- use Shift-F10 to get a terminal and disable BitLocker
+  `reg add HKLM\SYSTEM\CurrentControlSet\Control\BitLocker /v PreventDeviceEncryption /t REG_DWORD /d 1 /f`
+- install the Ethernet and Graphics driver
+- disable updates for App store and Windows Update (via GPO)
+- create READY task in Taskmanager
+- disable power management (screen/system sleep: never)
+- disable hibernation `powercfg /HIBERNATE off` (in admin shell)
+- run Edge once to go through all the "first time run steps"
+- shut down the system
+
+## Cleanup
+
+To remove generated artifacts:
+
+```bash
+./win11.sh --clean
+```
+
+## Start From Existing Disk
+
+Once you have an installed base disk (`win11.qcow2` by default), you can start a
+VM without attaching the installation ISOs. The script creates a qcow2 overlay
+clone (default: `win11-clone.qcow2`) using the base disk as the backing file,
+unless it already exists.
+
+```bash
+./win11.sh
+
+# explicitly pick base/clone and AppArmor-friendly paths
+./win11.sh --workdir /var/windows --base-disk win11.qcow2 --clone-disk win11-lab1.qcow2
+
+# enable networking (creates TAP and attaches to bridge)
+./win11.sh --net
+
+# install mode with networking
+./win11.sh --install --net
+```
+
+## Networking
+
+Networking is disabled by default. To enable it, use `--net`, which creates the
+TAP interface (default: `tap0`) and attaches it to the bridge (default: `virbr0`).
+
+```bash
+./win11.sh --install --net
+
+# customize interface names
+./win11.sh --install --net --tap-ifname tap0 --bridge virbr0
+```
 
 ## Links
 
