@@ -99,7 +99,7 @@ Refer to the video for detailed installation instructions!
 - install the Ethernet and video driver after creating the user
   (use `\NetKVM\w11\amd64` for Ethernet and `\viogpudo\w11\amd64` for video)
 - disable updates for App store and Windows Update (via GPO)
-- create READY task in Taskmanager
+- create READY task in Task Scheduler
 - disable power management in settings app (screen/system sleep: never)
 - disable hibernation `powercfg /HIBERNATE off` (in admin shell)
 - run Edge once to go through all the "first time run steps"

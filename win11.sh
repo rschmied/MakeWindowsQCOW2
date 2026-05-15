@@ -29,7 +29,9 @@ Options:
   -h, --help              Show this help
 
 Config:
-  If present, the script sources ./config.env (next to the script).
+  If present, the script sources config.env from WORKDIR first, then falls back
+  to config.env next to the script.
+  Set CONFIG_FILE to force a specific config path.
   Environment variables and CLI flags override config.env.
 
 Path handling:
@@ -42,6 +44,19 @@ EOF
 }
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+PRELOAD_WORKDIR="${WORKDIR:-$SCRIPT_DIR}"
+ORIGINAL_ARGS=("$@")
+
+# Pre-parse --workdir so config can be loaded from the intended directory.
+for ((i=0; i<${#ORIGINAL_ARGS[@]}; i++)); do
+  case "${ORIGINAL_ARGS[$i]}" in
+    --workdir)
+      i=$((i + 1))
+      PRELOAD_WORKDIR="${ORIGINAL_ARGS[$i]:-}"
+      ;;
+  esac
+done
 
 check_free_space() {
   local required_gb="$1"
@@ -108,8 +123,21 @@ resolve_path() {
   esac
 }
 
-# Optional config file next to the script.
-CONFIG_FILE="${CONFIG_FILE:-$SCRIPT_DIR/config.env}"
+# Optional config file: WORKDIR/config.env first, fallback to script dir.
+if [ -z "${CONFIG_FILE:-}" ]; then
+  case "$PRELOAD_WORKDIR" in
+    "") CONFIG_FILE="" ;;
+    /*) CONFIG_FILE="$PRELOAD_WORKDIR/config.env" ;;
+    ~) CONFIG_FILE="$HOME/config.env" ;;
+    ~/*) CONFIG_FILE="${HOME}/${PRELOAD_WORKDIR#~/}/config.env" ;;
+    *) CONFIG_FILE="$PRELOAD_WORKDIR/config.env" ;;
+  esac
+
+  if [ ! -f "$CONFIG_FILE" ]; then
+    CONFIG_FILE="$SCRIPT_DIR/config.env"
+  fi
+fi
+
 if [ -f "$CONFIG_FILE" ]; then
   # shellcheck source=/dev/null
   . "$CONFIG_FILE"
@@ -261,7 +289,9 @@ if [ "$CLEAN_ONLY" -eq 1 ]; then
   exit 0
 fi
 
-check_free_space "$REQUIRED_FREE_GB" "$WORKDIR"
+if [ "$START_MODE" -eq 0 ]; then
+  check_free_space "$REQUIRED_FREE_GB" "$WORKDIR"
+fi
 
 if [ "$START_MODE" -eq 0 ]; then
   if [ ! -f "$ISO_PATH" ]; then
