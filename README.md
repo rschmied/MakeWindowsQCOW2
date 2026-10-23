@@ -127,7 +127,8 @@ rm win11.qcow2 && mv win11-compressed.qcow2 win11.qcow2
 Once you have an installed base disk (`win11.qcow2` by default), you can start a
 VM without attaching the installation ISOs. The script creates a qcow2 overlay
 clone (default: `win11-clone.qcow2`) using the base disk as the backing file,
-unless it already exists.
+unless it already exists. Each clone gets a writable UEFI variable file named
+`OVMF_VARS_WIN11-<clone-name>.fd`, unless `OVMF_VARS` is set explicitly.
 
 ```bash
 ./win11.sh
@@ -137,6 +138,9 @@ unless it already exists.
 
 # enable networking (creates TAP and attaches to bridge)
 ./win11.sh --net
+
+# isolate temporary TPM state for a concurrent VM process
+./win11.sh --clone-disk win11-lab2.qcow2 --tpm-dir-pid
 
 # install mode with networking (not recommended, install offline)
 ./win11.sh --install --net

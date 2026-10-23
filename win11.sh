@@ -17,6 +17,7 @@ Options:
   --bridge IFNAME         Bridge interface name (default: virbr0)
   --workdir DIR           Directory containing ISOs/disks (default: script directory)
   --tpm-dir DIR           Directory for swtpm socket/state (default: /tmp/tpm-dir)
+  --tpm-dir-pid           Suffix the TPM directory with user and process ID
   --iso FILE              Windows ISO path (default: Win11_24H2_English_x64.iso)
   --virtio-iso FILE       Virtio ISO path (default: virtio-win-0.1.285.iso)
   --disk FILE             QCOW2 disk filename (default: win11.qcow2)
@@ -74,7 +75,7 @@ check_free_space() {
 }
 
 clean_artifacts() {
-  rm -f -- "$WORKDIR/$OVMF_VARS" "$WORKDIR/$DISK" "$WORKDIR/$CLONE_DISK" "$WORKDIR/win11-serial.log"
+  rm -f -- "$OVMF_VARS_PATH" "$WORKDIR/$DISK" "$WORKDIR/$CLONE_DISK" "$WORKDIR/win11-serial.log"
 
   case "$TPM_DIR" in
     "$WORKDIR"/* | /tmp/tpm-dir | /tmp/tpm-dir-*)
@@ -156,9 +157,11 @@ CPUS="${CPUS:-4}"
 REQUIRED_FREE_GB="${REQUIRED_FREE_GB:-16}"
 
 TPM_DIR="${TPM_DIR:-/tmp/tpm-dir}"
+TPM_DIR_PID=0
 
 OVMF_CODE="${OVMF_CODE:-/usr/share/OVMF/OVMF_CODE_4M.ms.fd}"
-OVMF_VARS="${OVMF_VARS:-OVMF_VARS_WIN11.fd}"
+OVMF_VARS="${OVMF_VARS:-}"
+OVMF_VARS_TEMPLATE="${OVMF_VARS_TEMPLATE:-/usr/share/OVMF/OVMF_VARS_4M.ms.fd}"
 
 CPU_FLAG_DEFAULT=host,kvm=on,hv-passthrough
 CPU_FLAGS="${CPU_FLAGS:-$CPU_FLAG_DEFAULT}"
@@ -200,6 +203,9 @@ while [ "$#" -gt 0 ]; do
     --tpm-dir)
       shift
       TPM_DIR="${1:-}"
+      ;;
+    --tpm-dir-pid)
+      TPM_DIR_PID=1
       ;;
     --iso)
       shift
@@ -271,6 +277,9 @@ fi
 
 cd "$WORKDIR"
 WORKDIR="$(pwd)"
+if [ "$TPM_DIR_PID" -eq 1 ]; then
+  TPM_DIR="${TPM_DIR%/}-${USER:-$(id -un)}-$$"
+fi
 if [ -z "$TPM_DIR" ]; then
   echo "Error: TPM_DIR is empty" >&2
   exit 1
@@ -282,6 +291,17 @@ ISO_PATH="$(resolve_path "$ISO")"
 VIRTIO_ISO_PATH="$(resolve_path "$VIRTIO_ISO")"
 BASE_DISK_PATH="$(resolve_path "$BASE_DISK")"
 CLONE_DISK_PATH="$(resolve_path "$CLONE_DISK")"
+
+if [ -z "$OVMF_VARS" ]; then
+  if [ "$START_MODE" -eq 1 ]; then
+    CLONE_NAME="$(basename "$CLONE_DISK_PATH")"
+    CLONE_NAME="${CLONE_NAME%.*}"
+    OVMF_VARS="OVMF_VARS_WIN11-${CLONE_NAME}.fd"
+  else
+    OVMF_VARS="OVMF_VARS_WIN11.fd"
+  fi
+fi
+OVMF_VARS_PATH="$(resolve_path "$OVMF_VARS")"
 
 if [ "$CLEAN_ONLY" -eq 1 ]; then
   clean_artifacts
@@ -319,9 +339,9 @@ else
   fi
 fi
 
-if [ ! -f "$OVMF_VARS" ]; then
-  echo "Copying OVMF_VARS template..."
-  cp /usr/share/OVMF/OVMF_VARS_4M.ms.fd "$OVMF_VARS"
+if [ ! -f "$OVMF_VARS_PATH" ]; then
+  echo "Copying OVMF_VARS template: $OVMF_VARS_PATH"
+  cp "$OVMF_VARS_TEMPLATE" "$OVMF_VARS_PATH"
 fi
 
 mkdir -p "$TPM_DIR"
@@ -367,7 +387,7 @@ QEMU_ARGS=(
   -smp "$CPUS"
   -m "$MEMORY"
   -drive if=pflash,format=raw,readonly=on,file="$OVMF_CODE"
-  -drive if=pflash,format=raw,file="$OVMF_VARS"
+  -drive if=pflash,format=raw,file="$OVMF_VARS_PATH"
   -netdev "tap,id=net0,ifname=$TAP_IFNAME,script=no,downscript=no"
   -device "virtio-net-pci,netdev=net0,mac=52:54:00:12:34:56"
   -chardev "socket,id=chrtpm,path=$TPM_DIR/swtpm-sock"
