@@ -78,6 +78,8 @@ Run modes:
 
 - Default: starts from an existing base disk via an overlay clone (no ISOs)
 - Install: `./win11.sh --install` (attaches Windows + Virtio ISOs)
+- Storage defaults to CML-compatible `virtio-blk-pci`; add `--scsi` to use
+  `virtio-scsi-pci` with an I/O thread and a `scsi-hd` disk
 
 Refer to the video for detailed installation instructions!
 
@@ -88,9 +90,9 @@ Refer to the video for detailed installation instructions!
 > In particular, video and disk storage drivers must be adapted -- see below
 > for the name
 
-- install disk driver early on to see the disk drive
-  - By default use the disk driver in `\amd64\w11` for PCI (works with CML)
-  - When using SCSI then use `\vioscsi\w11\amd64` (does **not** work with CML)
+- install the disk driver early on to see the disk drive
+  - By default, use the driver in `\amd64\w11` for PCI (works with CML)
+  - With `--scsi`, use `\vioscsi\w11\amd64` (does **not** work with CML)
 - after copying the base system and after the first reboot, use Shift-F10 to
   get a terminal and disable BitLocker  
   `reg add HKLM\SYSTEM\CurrentControlSet\Control\BitLocker /v PreventDeviceEncryption /t REG_DWORD /d 1 /f`

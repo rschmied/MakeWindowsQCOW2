@@ -160,8 +160,7 @@ TPM_DIR="${TPM_DIR:-/tmp/tpm-dir}"
 OVMF_CODE="${OVMF_CODE:-/usr/share/OVMF/OVMF_CODE_4M.ms.fd}"
 OVMF_VARS="${OVMF_VARS:-OVMF_VARS_WIN11.fd}"
 
-# CPU_FLAG_DEFAULT=-host,-waitpkg,-hle,-rtm,-mpx
-CPU_FLAG_DEFAULT=host,kvm=on,hv_relaxed,hv_spinlocks=0x1fff,hv_vapic,hv_time,hv_synic,hv_stimer,hv_reset,hv_vpindex,hv_runtime
+CPU_FLAG_DEFAULT=host,kvm=on,hv-passthrough
 CPU_FLAGS="${CPU_FLAGS:-$CPU_FLAG_DEFAULT}"
 
 SCSI_MODE=0
@@ -381,10 +380,10 @@ QEMU_ARGS=(
   -serial "file:win11-serial.log"
 )
 
-if [ "$START_MODE" -eq 0 ]; then
-  QEMU_ARGS=("${QEMU_ARGS[@]}" "${BOOT_DISK_PCI[@]}")
+if [ "$SCSI_MODE" -eq 1 ]; then
+  QEMU_ARGS+=("${BOOT_DISK_SCSI[@]}")
 else
-  QEMU_ARGS=("${QEMU_ARGS[@]}" "${BOOT_DISK_SCSI[@]}")
+  QEMU_ARGS+=("${BOOT_DISK_PCI[@]}")
 fi
 
 if [ "$START_MODE" -eq 0 ]; then
