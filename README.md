@@ -44,14 +44,13 @@ are already in place. These include
 
    Replace the IP so that it matches your CML controller IP.
 
-1. Ensure that the referenced ISOs from the `win11.sh` do exist at the
-   specified locations in the `config.env` file. Also ensure that the memory
-   and CPU settings are OK for your CML installation. At a minimum, use 4 GB
-   and 2 CPUs.
+1. Copy `config.env.example` to `config.env` and ensure that its referenced
+   ISOs exist. Also ensure that the memory and CPU settings are OK for your CML
+   installation. At a minimum, use 4 GB and 2 CPUs.
 
-   Configuration can be provided via `config.env` (next to `win11.sh`) and/or
-   via environment variables / command-line flags. Environment variables and
-   flags override `config.env`.
+   The script first looks for `config.env` in the working directory, then next
+   to `win11.sh`. Local `config.env` files are ignored by Git. Environment
+   variables and command-line flags override `config.env`.
 
    ISO paths can be either relative to the working directory or absolute paths.
    `~/...` is supported (expanded to your home directory).

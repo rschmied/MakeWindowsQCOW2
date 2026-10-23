@@ -30,7 +30,7 @@ Options:
 
 Config:
   If present, the script sources config.env from WORKDIR first, then falls back
-  to config.env next to the script.
+  to a local config.env next to the script. Copy config.env.example to create one.
   Set CONFIG_FILE to force a specific config path.
   Environment variables and CLI flags override config.env.
 
