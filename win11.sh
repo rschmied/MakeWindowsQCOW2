@@ -2,7 +2,7 @@
 set -euo pipefail
 
 usage() {
-  cat << 'EOF'
+  cat <<'EOF'
 Usage: win11.sh [options]
 
 Modes:
@@ -50,7 +50,7 @@ PRELOAD_WORKDIR="${WORKDIR:-$SCRIPT_DIR}"
 ORIGINAL_ARGS=("$@")
 
 # Pre-parse --workdir so config can be loaded from the intended directory.
-for ((i=0; i<${#ORIGINAL_ARGS[@]}; i++)); do
+for ((i = 0; i < ${#ORIGINAL_ARGS[@]}; i++)); do
   case "${ORIGINAL_ARGS[$i]}" in
     --workdir)
       i=$((i + 1))
@@ -93,12 +93,12 @@ ensure_network() {
     exit 1
   fi
 
-  if ! ip link show "$BRIDGE_IFNAME" > /dev/null 2>&1; then
+  if ! ip link show "$BRIDGE_IFNAME" >/dev/null 2>&1; then
     echo "Error: bridge interface not found: $BRIDGE_IFNAME" >&2
     exit 1
   fi
 
-  if ! ip link show "$TAP_IFNAME" > /dev/null 2>&1; then
+  if ! ip link show "$TAP_IFNAME" >/dev/null 2>&1; then
     sudo ip tuntap add dev "$TAP_IFNAME" mode tap user "$USER"
   fi
 
